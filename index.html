@@ -1,1 +1,117 @@
-<h1>Test</h1>
+<%
+
+/*
+ * Mandelbrot.java
+ * 
+ * A simple program to draw the Mandelbrot set using the escape time algorithm.
+ * The program uses the distance bounded method to determine if a point is in the set.
+ * The program uses the AWT library to draw the set.
+ * 
+ * About the Mandelbrot set
+ * https://en.wikipedia.org/wiki/Mandelbrot_set#
+ * 
+ * Created by Braden Zingler on 3/18/2024.
+ * https://github.com/bradenzingler/mandelbrot-set
+ */
+import java.awt.*;
+import java.awt.event.*;
+import java.util.Random;
+
+
+public class Mandelbrot extends Frame {
+
+    // Number of iterations to determine if a point is in the set
+    private final int NUM_ITERATIONS = 1000;
+
+    /*
+     * Constructor for the Mandelbrot class.
+     */
+    public Mandelbrot() {
+        super("Mandelbrot Set");
+        initialize();
+    }
+
+    /*
+     * Main method to create a Mandelbrot object and display the set.
+     */
+    public static void main(String[] args) {
+        Mandelbrot brot = new Mandelbrot();
+        brot.setVisible(true);
+    }
+
+    /*
+     * Initializes the frame and sets the size.
+     */
+    private void initialize() {
+        setSize(1000, 1000);
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent windowEvent){
+               System.exit(0);
+            }        
+         });
+    }
+
+    /*
+     * Paints the Mandelbrot set on the frame.
+     * The set is drawn by iterating over each pixel and calculating the iteration for the point.
+     * The iteration is then used to determine the color of the pixel.
+     */
+    @Override
+    public void paint(Graphics g) {
+        super.paint(g);
+        Graphics2D g2 = (Graphics2D)g;
+        g2.setStroke(new BasicStroke(3));
+    
+        for (int x = 0; x < getWidth(); x++) {
+            for (int y = 0; y < getHeight(); y++) {
+                // Map pixel coordinates to complex plane based on zoom
+                double a = (x - getWidth() / 2.0) * 4.0 / getWidth();
+                double b = (y - getHeight() / 2.0) * 4.0 / getHeight();
+
+                // Calculate the iteration for the current pixel
+                int escapeIteration = mandelbrotIteration(a, b);
+                Color color = getIterationColor(escapeIteration);
+                g2.setColor(color);
+                g2.drawLine(x, y, x, y);
+            }
+        }
+    }
+
+
+    /*
+     * Returns a color based on the iteration number.
+     * The color can be adjusted to create a gradient.
+     */
+    public Color getIterationColor(int iteration) {
+        Random rand = new Random();
+        Color color = new Color(rand.nextInt(iteration) % 255, rand.nextInt(iteration) % 255, rand.nextInt(iteration) % 255);
+        return color;
+    }
+
+
+    /*
+     * Iterates over the mandelbrot equation until either numIterations is reached (distance bounded)
+     * or the function goes to infinity (diverges).
+     */
+    public int mandelbrotIteration(double a, double b) {
+        double ca = a;
+        double cb = b;
+
+        for (int i = 0; i < NUM_ITERATIONS; i++) {
+            // Calculate real and imaginary components for next generation
+            double real = a*a - b*b;
+            double im = 2*a*b;
+            a = real + ca;
+            b = im + cb;
+
+            // If magnitude exceeds 16^2 (4 in imaginary plane) point has diverged
+            if (Math.abs(real*real + im*im) > 16*16) {
+                return i;
+            }
+        }
+        // If point has not diverged after NUM_ITERATIONS, it is in the set
+        return NUM_ITERATIONS;
+    }
+}
+
+%>
